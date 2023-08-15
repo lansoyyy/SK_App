@@ -90,7 +90,7 @@ class LoginScreen extends StatelessWidget {
                 TextButton(
                   onPressed: (() {
                     Navigator.of(context).pushReplacement(MaterialPageRoute(
-                        builder: (context) => const SignupScreen()));
+                        builder: (context) => SignupScreen()));
                   }),
                   child: TextWidget(
                       fontFamily: 'Bold',
