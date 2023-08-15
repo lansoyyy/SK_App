@@ -1,8 +1,11 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sk_app/screens/auth/login_screen.dart';
 import 'package:sk_app/widgets/button_widget.dart';
 import 'package:sk_app/widgets/text_widget.dart';
 import 'package:sk_app/widgets/textfield_widget.dart';
+
+import '../../widgets/toast_widget.dart';
 
 class ForgotPasswordScreen extends StatelessWidget {
   ForgotPasswordScreen({super.key});
@@ -65,8 +68,7 @@ class ForgotPasswordScreen extends StatelessWidget {
             ButtonWidget(
               label: 'Continue',
               onPressed: () {
-                Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (context) => LoginScreen()));
+                forgotPassword(context);
               },
             ),
             const SizedBox(
@@ -96,5 +98,34 @@ class ForgotPasswordScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  forgotPassword(context) async {
+    try {
+      await FirebaseAuth.instance
+          .sendPasswordResetEmail(email: emailController.text);
+      showToast('Password reset link sent to ${emailController.text}');
+      Navigator.pop(context);
+    } catch (e) {
+      String errorMessage = '';
+
+      if (e is FirebaseException) {
+        switch (e.code) {
+          case 'invalid-email':
+            errorMessage = 'The email address is invalid.';
+            break;
+          case 'user-not-found':
+            errorMessage =
+                'The user associated with the email address is not found.';
+            break;
+          default:
+            errorMessage = 'An error occurred while resetting the password.';
+        }
+      } else {
+        errorMessage = 'An error occurred while resetting the password.';
+      }
+
+      showToast(errorMessage);
+    }
   }
 }
