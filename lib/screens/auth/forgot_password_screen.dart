@@ -1,17 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:sk_app/screens/auth/login_screen.dart';
+import 'package:sk_app/screens/auth/signup_screen.dart';
+import 'package:sk_app/screens/home_screen.dart';
 import 'package:sk_app/widgets/button_widget.dart';
 import 'package:sk_app/widgets/text_widget.dart';
 import 'package:sk_app/widgets/textfield_widget.dart';
 
-class SignupScreen extends StatelessWidget {
-  SignupScreen({super.key});
+class ForgotPasswordScreen extends StatelessWidget {
+  ForgotPasswordScreen({super.key});
 
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
-  final nameController = TextEditingController();
-  final addressController = TextEditingController();
-  final contactNumberController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -25,23 +23,23 @@ class SignupScreen extends StatelessWidget {
                 Row(
                   children: [
                     Container(
-                      height: 150,
+                      height: 225,
                       width: medQuery.width * 0.5,
                       decoration: const BoxDecoration(color: Colors.blue),
                     ),
                     Container(
-                      height: 150,
+                      height: 225,
                       width: medQuery.width * 0.5,
                       decoration: const BoxDecoration(color: Colors.red),
                     ),
                   ],
                 ),
                 Padding(
-                  padding: const EdgeInsets.only(top: 50),
+                  padding: const EdgeInsets.only(top: 100),
                   child: Center(
                     child: Container(
-                      height: 150,
-                      width: 150,
+                      height: 300,
+                      width: 250,
                       decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(10),
                           image: const DecorationImage(
@@ -52,20 +50,13 @@ class SignupScreen extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(
-              height: 10,
-            ),
             Center(
               child: TextWidget(
-                text: 'Sign Up',
+                text: 'Sign In',
                 fontSize: 24,
                 fontFamily: 'Bold',
               ),
             ),
-            const SizedBox(
-              height: 10,
-            ),
-            TextFieldWidget(label: 'Name', controller: nameController),
             const SizedBox(
               height: 10,
             ),
@@ -79,24 +70,13 @@ class SignupScreen extends StatelessWidget {
                 label: 'Password',
                 controller: passwordController),
             const SizedBox(
-              height: 10,
-            ),
-            TextFieldWidget(
-                inputType: TextInputType.number,
-                label: 'Contact Number',
-                controller: contactNumberController),
-            const SizedBox(
-              height: 10,
-            ),
-            TextFieldWidget(label: 'Address', controller: addressController),
-            const SizedBox(
               height: 30,
             ),
             ButtonWidget(
-              label: 'Sign Up',
+              label: 'Sign In',
               onPressed: () {
-                Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (context) => LoginScreen()));
+                Navigator.of(context).pushReplacement(MaterialPageRoute(
+                    builder: (context) => const HomeScreen()));
               },
             ),
             const SizedBox(
@@ -106,21 +86,31 @@ class SignupScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 TextWidget(
-                    text: "Already had an account?",
-                    fontSize: 12,
-                    color: Colors.black),
+                    text: "No Account?", fontSize: 12, color: Colors.black),
                 TextButton(
                   onPressed: (() {
-                    Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(builder: (context) => LoginScreen()));
+                    Navigator.of(context).pushReplacement(MaterialPageRoute(
+                        builder: (context) => SignupScreen()));
                   }),
                   child: TextWidget(
                       fontFamily: 'Bold',
-                      text: "Login Now",
+                      text: "Signup Now",
                       fontSize: 14,
                       color: Colors.black),
                 ),
               ],
+            ),
+            TextButton(
+              onPressed: (() {
+                // Navigator.of(context).pushReplacement(
+                //     MaterialPageRoute(
+                //         builder: (context) => SignupScreen()));
+              }),
+              child: TextWidget(
+                  fontFamily: 'Bold',
+                  text: "Continue as Admin",
+                  fontSize: 14,
+                  color: Colors.blue),
             ),
           ],
         ),
