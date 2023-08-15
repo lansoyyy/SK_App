@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sk_app/widgets/button_widget.dart';
 import 'package:sk_app/widgets/text_widget.dart';
 
 class LandingScreen extends StatelessWidget {
@@ -34,7 +35,9 @@ class LandingScreen extends StatelessWidget {
                     width: 250,
                     decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(10),
-                        color: Colors.grey),
+                        image: const DecorationImage(
+                            image: AssetImage('assets/images/sample.jpg'),
+                            fit: BoxFit.cover)),
                   ),
                 ),
               ),
@@ -67,6 +70,14 @@ class LandingScreen extends StatelessWidget {
                 ),
               ),
             ),
+          ),
+          const Expanded(child: SizedBox()),
+          ButtonWidget(
+            label: 'Continue',
+            onPressed: () {},
+          ),
+          const SizedBox(
+            height: 20,
           ),
         ],
       ),
