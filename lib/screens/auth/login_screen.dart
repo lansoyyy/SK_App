@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sk_app/screens/auth/forgot_password_screen.dart';
 import 'package:sk_app/screens/auth/signup_screen.dart';
 import 'package:sk_app/screens/home_screen.dart';
 import 'package:sk_app/widgets/button_widget.dart';
@@ -64,11 +65,27 @@ class LoginScreen extends StatelessWidget {
             const SizedBox(
               height: 5,
             ),
-            TextFieldWidget(
-                showEye: true,
-                isObscure: true,
-                label: 'Password',
-                controller: passwordController),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                TextFieldWidget(
+                    showEye: true,
+                    isObscure: true,
+                    label: 'Password',
+                    controller: passwordController),
+                TextButton(
+                  onPressed: (() {
+                    Navigator.of(context).push(MaterialPageRoute(
+                        builder: (context) => ForgotPasswordScreen()));
+                  }),
+                  child: TextWidget(
+                      fontFamily: 'Bold',
+                      text: "Forgot Password?",
+                      fontSize: 12,
+                      color: Colors.red),
+                ),
+              ],
+            ),
             const SizedBox(
               height: 30,
             ),

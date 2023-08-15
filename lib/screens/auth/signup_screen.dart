@@ -4,14 +4,38 @@ import 'package:sk_app/widgets/button_widget.dart';
 import 'package:sk_app/widgets/text_widget.dart';
 import 'package:sk_app/widgets/textfield_widget.dart';
 
-class SignupScreen extends StatelessWidget {
-  SignupScreen({super.key});
+class SignupScreen extends StatefulWidget {
+  const SignupScreen({super.key});
 
+  @override
+  State<SignupScreen> createState() => _SignupScreenState();
+}
+
+class _SignupScreenState extends State<SignupScreen> {
   final emailController = TextEditingController();
+
   final passwordController = TextEditingController();
+
   final nameController = TextEditingController();
+
   final addressController = TextEditingController();
+
   final contactNumberController = TextEditingController();
+
+  String selectedPurok = 'Purok 1';
+  // Store the selected purok
+  List<String> purokOptions = [
+    'Purok 1',
+    'Purok 2',
+    'Purok 3',
+    'Purok 4',
+    'Purok 5',
+    'Purok 6',
+    'Purok 7',
+    'Purok 8',
+    'Purok 9',
+    'Purok 10',
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -79,18 +103,84 @@ class SignupScreen extends StatelessWidget {
                 label: 'Password',
                 controller: passwordController),
             const SizedBox(
-              height: 10,
+              height: 5,
             ),
             TextFieldWidget(
                 inputType: TextInputType.number,
                 label: 'Contact Number',
                 controller: contactNumberController),
             const SizedBox(
-              height: 10,
+              height: 5,
             ),
             TextFieldWidget(label: 'Address', controller: addressController),
             const SizedBox(
-              height: 30,
+              height: 5,
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                RichText(
+                  text: const TextSpan(
+                    children: [
+                      TextSpan(
+                        text: 'Purok',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontFamily: 'Bold',
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      TextSpan(
+                        text: '*',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontFamily: 'Bold',
+                          color: Colors.red,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+                const SizedBox(
+                  height: 5,
+                ),
+                Container(
+                  width: 325,
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: Colors.grey,
+                    ),
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  child: DropdownButton<String>(
+                    underline: const SizedBox(),
+                    value: selectedPurok,
+                    onChanged: (newValue) {
+                      setState(() {
+                        selectedPurok = newValue!;
+                      });
+                    },
+                    items: purokOptions
+                        .map<DropdownMenuItem<String>>((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Padding(
+                          padding: const EdgeInsets.only(left: 20, right: 20),
+                          child: TextWidget(
+                            text: value,
+                            fontSize: 16,
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(
+              height: 20,
             ),
             ButtonWidget(
               label: 'Sign Up',
