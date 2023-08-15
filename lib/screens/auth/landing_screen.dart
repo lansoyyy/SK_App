@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sk_app/screens/auth/login_screen.dart';
 import 'package:sk_app/widgets/button_widget.dart';
 import 'package:sk_app/widgets/text_widget.dart';
 
@@ -74,7 +75,10 @@ class LandingScreen extends StatelessWidget {
           const Expanded(child: SizedBox()),
           ButtonWidget(
             label: 'Continue',
-            onPressed: () {},
+            onPressed: () {
+              Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (context) => LoginScreen()));
+            },
           ),
           const SizedBox(
             height: 20,
