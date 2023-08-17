@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:sk_app/screens/pages/announcements_page.dart';
-import 'package:sk_app/screens/pages/helpdesk/main_helpdesk_page.dart';
-import 'package:sk_app/screens/pages/registration_page.dart';
+import 'package:sk_app/screens/pages/helpdesk/add_helpdesk_page.dart';
 import 'package:sk_app/widgets/text_widget.dart';
 
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+class MainHelpdeskScreen extends StatelessWidget {
+  const MainHelpdeskScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -26,19 +24,20 @@ class HomeScreen extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.pop(context);
+                      },
+                      child: const Icon(
+                        Icons.arrow_back,
+                      ),
+                    ),
                     TextWidget(
-                      text: 'HOME',
+                      text: 'Help Desk',
                       fontSize: 24,
                       color: Colors.black,
                       fontFamily: 'Bold',
                     ),
-                    IconButton(
-                        onPressed: () {},
-                        icon: const Icon(
-                          Icons.info,
-                          color: Colors.blue,
-                          size: 32,
-                        )),
                   ],
                 ),
                 const SizedBox(
@@ -49,14 +48,14 @@ class HomeScreen extends StatelessWidget {
                   child: ListTile(
                     onTap: () {
                       Navigator.of(context).push(MaterialPageRoute(
-                          builder: (context) => const AnnouncementsPage()));
+                          builder: (context) => AddHelpdeskPage()));
                     },
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(5),
                     ),
                     tileColor: Colors.blue,
                     title: TextWidget(
-                      text: 'Announcements',
+                      text: 'Sports',
                       fontSize: 22,
                       color: Colors.white,
                     ),
@@ -69,6 +68,76 @@ class HomeScreen extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(5, 10, 5, 10),
                   child: ListTile(
+                    onTap: () {
+                      Navigator.of(context).push(MaterialPageRoute(
+                          builder: (context) => AddHelpdeskPage()));
+                    },
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(5),
+                    ),
+                    tileColor: Colors.blue,
+                    title: TextWidget(
+                      text: 'Environmental',
+                      fontSize: 22,
+                      color: Colors.white,
+                    ),
+                    trailing: const Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(5, 10, 5, 10),
+                  child: ListTile(
+                    onTap: () {
+                      Navigator.of(context).push(MaterialPageRoute(
+                          builder: (context) => AddHelpdeskPage()));
+                    },
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(5),
+                    ),
+                    tileColor: Colors.blue,
+                    title: TextWidget(
+                      text: 'Esports',
+                      fontSize: 22,
+                      color: Colors.white,
+                    ),
+                    trailing: const Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(5, 10, 5, 10),
+                  child: ListTile(
+                    onTap: () {
+                      Navigator.of(context).push(MaterialPageRoute(
+                          builder: (context) => AddHelpdeskPage()));
+                    },
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(5),
+                    ),
+                    tileColor: Colors.blue,
+                    title: TextWidget(
+                      text: 'Cultural',
+                      fontSize: 22,
+                      color: Colors.white,
+                    ),
+                    trailing: const Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(5, 10, 5, 10),
+                  child: ListTile(
+                    onTap: () {
+                      Navigator.of(context).push(MaterialPageRoute(
+                          builder: (context) => AddHelpdeskPage()));
+                    },
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(5),
                     ),
@@ -87,48 +156,16 @@ class HomeScreen extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(5, 10, 5, 10),
                   child: ListTile(
+                    onTap: () {
+                      Navigator.of(context).push(MaterialPageRoute(
+                          builder: (context) => AddHelpdeskPage()));
+                    },
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(5),
                     ),
                     tileColor: Colors.blue,
                     title: TextWidget(
-                      text: 'Activities',
-                      fontSize: 22,
-                      color: Colors.white,
-                    ),
-                    trailing: const Icon(
-                      Icons.arrow_forward_ios_rounded,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(5, 10, 5, 10),
-                  child: ListTile(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(5),
-                    ),
-                    tileColor: Colors.blue,
-                    title: TextWidget(
-                      text: 'Surveys',
-                      fontSize: 22,
-                      color: Colors.white,
-                    ),
-                    trailing: const Icon(
-                      Icons.arrow_forward_ios_rounded,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(5, 10, 5, 10),
-                  child: ListTile(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(5),
-                    ),
-                    tileColor: Colors.blue,
-                    title: TextWidget(
-                      text: 'Crowdsourcing',
+                      text: 'Livelihood',
                       fontSize: 22,
                       color: Colors.white,
                     ),
@@ -143,36 +180,14 @@ class HomeScreen extends StatelessWidget {
                   child: ListTile(
                     onTap: () {
                       Navigator.of(context).push(MaterialPageRoute(
-                          builder: (context) => const MainHelpdeskScreen()));
+                          builder: (context) => AddHelpdeskPage()));
                     },
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(5),
                     ),
                     tileColor: Colors.blue,
                     title: TextWidget(
-                      text: 'Help Desk',
-                      fontSize: 22,
-                      color: Colors.white,
-                    ),
-                    trailing: const Icon(
-                      Icons.arrow_forward_ios_rounded,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(5, 10, 5, 10),
-                  child: ListTile(
-                    onTap: () {
-                      Navigator.of(context).push(MaterialPageRoute(
-                          builder: (context) => RegistrationPage()));
-                    },
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(5),
-                    ),
-                    tileColor: Colors.blue,
-                    title: TextWidget(
-                      text: 'Registrations',
+                      text: 'Compliants',
                       fontSize: 22,
                       color: Colors.white,
                     ),
