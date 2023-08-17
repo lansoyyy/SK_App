@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-Future signup(name, email, number, address, purok) async {
+Future signup(name, email, number, address, purok, profile, residency) async {
   final docUser = FirebaseFirestore.instance
       .collection('Users')
       .doc(FirebaseAuth.instance.currentUser!.uid);
@@ -15,6 +15,8 @@ Future signup(name, email, number, address, purok) async {
     'isActive': true,
     'role': 'User',
     'id': docUser.id,
+    'profile': profile,
+    'residency': residency,
   };
 
   await docUser.set(json);

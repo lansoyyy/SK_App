@@ -1,12 +1,18 @@
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:sk_app/screens/auth/login_screen.dart';
 import 'package:sk_app/screens/home_screen.dart';
 import 'package:sk_app/services/signup.dart';
 import 'package:sk_app/widgets/button_widget.dart';
 import 'package:sk_app/widgets/text_widget.dart';
 import 'package:sk_app/widgets/textfield_widget.dart';
-
+import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
+import 'package:path/path.dart' as path;
 import '../../widgets/toast_widget.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -17,6 +23,79 @@ class SignupScreen extends StatefulWidget {
 }
 
 class _SignupScreenState extends State<SignupScreen> {
+  late String fileName = '';
+  late String fileUrl = '';
+
+  late File imageFile;
+
+  late String imageURL = '';
+  bool hasLoaded = false;
+  bool pickedFile = false;
+
+  Future<void> uploadPicture(String inputSource) async {
+    final picker = ImagePicker();
+    XFile pickedImage;
+    try {
+      pickedImage = (await picker.pickImage(
+          source: inputSource == 'camera'
+              ? ImageSource.camera
+              : ImageSource.gallery,
+          maxWidth: 1920))!;
+
+      fileName = path.basename(pickedImage.path);
+      imageFile = File(pickedImage.path);
+
+      try {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) => const Padding(
+            padding: EdgeInsets.only(left: 30, right: 30),
+            child: AlertDialog(
+                title: Row(
+              children: [
+                CircularProgressIndicator(
+                  color: Colors.black,
+                ),
+                SizedBox(
+                  width: 20,
+                ),
+                Text(
+                  'Loading . . .',
+                  style: TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'QRegular'),
+                ),
+              ],
+            )),
+          ),
+        );
+
+        await firebase_storage.FirebaseStorage.instance
+            .ref('Users/$fileName')
+            .putFile(imageFile);
+        imageURL = await firebase_storage.FirebaseStorage.instance
+            .ref('Users/$fileName')
+            .getDownloadURL();
+
+        setState(() {
+          hasLoaded = true;
+        });
+
+        Navigator.of(context).pop();
+      } on firebase_storage.FirebaseException catch (error) {
+        if (kDebugMode) {
+          print(error);
+        }
+      }
+    } catch (err) {
+      if (kDebugMode) {
+        print(err);
+      }
+    }
+  }
+
   final emailController = TextEditingController();
 
   final passwordController = TextEditingController();
@@ -91,6 +170,36 @@ class _SignupScreenState extends State<SignupScreen> {
                 fontFamily: 'Bold',
               ),
             ),
+            const SizedBox(
+              height: 20,
+            ),
+            GestureDetector(
+                onTap: () {
+                  uploadPicture('camera');
+                },
+                child: hasLoaded
+                    ? CircleAvatar(
+                        minRadius: 45,
+                        maxRadius: 45,
+                        backgroundImage: NetworkImage(imageURL),
+                        child: const Icon(
+                          Icons.photo_size_select_actual_rounded,
+                          color: Colors.black,
+                        ),
+                      )
+                    : const CircleAvatar(
+                        minRadius: 45,
+                        maxRadius: 45,
+                        backgroundImage:
+                            AssetImage('assets/images/profile.png'),
+                        child: Padding(
+                          padding: EdgeInsets.fromLTRB(70, 50, 0, 0),
+                          child: Icon(
+                            Icons.photo_size_select_actual_rounded,
+                            color: Colors.black,
+                          ),
+                        ),
+                      )),
             const SizedBox(
               height: 10,
             ),
@@ -185,12 +294,50 @@ class _SignupScreenState extends State<SignupScreen> {
               ],
             ),
             const SizedBox(
+              height: 40,
+            ),
+            ButtonWidget(
+              fontSize: 14,
+              label: 'Upload proof of residency',
+              onPressed: () async {
+                await FilePicker.platform
+                    .pickFiles(
+                  allowMultiple: false,
+                  onFileLoading: (p0) {
+                    return const CircularProgressIndicator();
+                  },
+                )
+                    .then((value) {
+                  setState(
+                    () {
+                      pickedFile = true;
+                      fileName = value!.names[0]!;
+                      imageFile = File(value.paths[0]!);
+                    },
+                  );
+                  return null;
+                });
+
+                await firebase_storage.FirebaseStorage.instance
+                    .ref('Files/$fileName')
+                    .putFile(imageFile);
+                fileUrl = await firebase_storage.FirebaseStorage.instance
+                    .ref('Files/$fileName')
+                    .getDownloadURL();
+                setState(() {});
+              },
+            ),
+            const SizedBox(
               height: 20,
             ),
             ButtonWidget(
               label: 'Sign Up',
               onPressed: () {
-                register(context);
+                if (pickedFile) {
+                  register(context);
+                } else {
+                  showToast('Upload proof of residency');
+                }
               },
             ),
             const SizedBox(
@@ -227,8 +374,14 @@ class _SignupScreenState extends State<SignupScreen> {
       await FirebaseAuth.instance.createUserWithEmailAndPassword(
           email: emailController.text, password: passwordController.text);
 
-      signup(nameController.text, emailController.text,
-          contactNumberController.text, addressController.text, selectedPurok);
+      signup(
+          nameController.text,
+          emailController.text,
+          contactNumberController.text,
+          addressController.text,
+          selectedPurok,
+          imageURL,
+          fileUrl);
 
       await FirebaseAuth.instance.signInWithEmailAndPassword(
           email: emailController.text, password: passwordController.text);
