@@ -22,16 +22,16 @@ class ActivitiesPage extends StatelessWidget {
             padding: const EdgeInsets.all(5.0),
             child: Card(
               child: SizedBox(
-                height: 100,
+                height: 75,
                 child: ListTile(
                   title: TextWidget(
-                    text: 'Name of the\nAnnouncements',
+                    text: 'Name of the\nActivity',
                     fontSize: 18,
                     color: Colors.black,
                     fontFamily: 'Bold',
                   ),
                   subtitle: TextWidget(
-                    text: 'Details of the Announcements',
+                    text: 'Details of the Activity',
                     fontSize: 12,
                     color: Colors.grey,
                   ),

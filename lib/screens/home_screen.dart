@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sk_app/screens/pages/activities_page.dart';
 import 'package:sk_app/screens/pages/announcements_page.dart';
 import 'package:sk_app/screens/pages/helpdesk/main_helpdesk_page.dart';
 import 'package:sk_app/screens/pages/registration_page.dart';
@@ -101,6 +102,10 @@ class HomeScreen extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(5, 10, 5, 10),
                   child: ListTile(
+                    onTap: () {
+                      Navigator.of(context).push(MaterialPageRoute(
+                          builder: (context) => const ActivitiesPage()));
+                    },
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(5),
                     ),
