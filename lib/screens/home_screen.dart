@@ -5,6 +5,8 @@ import 'package:sk_app/screens/pages/registration_page.dart';
 import 'package:sk_app/screens/pages/services_page.dart';
 import 'package:sk_app/widgets/text_widget.dart';
 
+import '../widgets/instruction_dialog.dart';
+
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
@@ -34,7 +36,14 @@ class HomeScreen extends StatelessWidget {
                       fontFamily: 'Bold',
                     ),
                     IconButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return const InstructionsDialog();
+                            },
+                          );
+                        },
                         icon: const Icon(
                           Icons.info,
                           color: Colors.blue,
