@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sk_app/screens/pages/activities_page.dart';
 import 'package:sk_app/screens/pages/announcements_page.dart';
+import 'package:sk_app/screens/pages/crowdsourcing_page.dart';
 import 'package:sk_app/screens/pages/helpdesk/main_helpdesk_page.dart';
 import 'package:sk_app/screens/pages/registration_page.dart';
 import 'package:sk_app/screens/pages/services_page.dart';
@@ -147,6 +148,10 @@ class HomeScreen extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(5, 10, 5, 10),
                   child: ListTile(
+                    onTap: () {
+                      Navigator.of(context).push(MaterialPageRoute(
+                          builder: (context) => const CroudsourcingPage()));
+                    },
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(5),
                     ),
