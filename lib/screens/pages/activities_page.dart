@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:sk_app/widgets/text_widget.dart';
 
 class ActivitiesPage extends StatelessWidget {
-  const ActivitiesPage({super.key});
+  final box = GetStorage();
 
+  ActivitiesPage({super.key});
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: box.read('role') == 'Admin'
+          ? FloatingActionButton(child: const Icon(Icons.add), onPressed: () {})
+          : null,
       appBar: AppBar(
         title: TextWidget(
           text: 'Activities',

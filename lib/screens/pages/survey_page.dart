@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get_storage/get_storage.dart';
 
 import '../../widgets/text_widget.dart';
 
@@ -18,9 +19,13 @@ class _SurveyPageState extends State<SurveyPage> {
     });
   }
 
+  final box = GetStorage();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: box.read('role') == 'Admin'
+          ? FloatingActionButton(child: const Icon(Icons.add), onPressed: () {})
+          : null,
       appBar: AppBar(
         title: TextWidget(
           text: 'Survey',

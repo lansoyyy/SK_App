@@ -1,12 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:sk_app/widgets/text_widget.dart';
 
-class AnnouncementsPage extends StatelessWidget {
+class AnnouncementsPage extends StatefulWidget {
   const AnnouncementsPage({super.key});
 
   @override
+  State<AnnouncementsPage> createState() => _AnnouncementsPageState();
+}
+
+class _AnnouncementsPageState extends State<AnnouncementsPage> {
+  final box = GetStorage();
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: box.read('role') == 'Admin'
+          ? FloatingActionButton(child: const Icon(Icons.add), onPressed: () {})
+          : null,
       appBar: AppBar(
         title: TextWidget(
           text: 'Announcements',

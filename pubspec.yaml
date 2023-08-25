@@ -42,6 +42,7 @@ dependencies:
   fluttertoast:
   image_picker:
   file_picker:
+  get_storage:
 
 dev_dependencies:
   flutter_test:
