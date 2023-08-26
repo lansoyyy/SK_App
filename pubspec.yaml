@@ -43,6 +43,7 @@ dependencies:
   image_picker:
   file_picker:
   get_storage:
+  intl: ^0.18.1
 
 dev_dependencies:
   flutter_test:

@@ -2,15 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:sk_app/widgets/text_widget.dart';
 
-class ServicesPage extends StatelessWidget {
+import '../../widgets/textfield_widget.dart';
+
+class ServicesPage extends StatefulWidget {
+  const ServicesPage({super.key});
+
+  @override
+  State<ServicesPage> createState() => _ServicesPageState();
+}
+
+class _ServicesPageState extends State<ServicesPage> {
   final box = GetStorage();
 
-  ServicesPage({super.key});
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       floatingActionButton: box.read('role') == 'Admin'
-          ? FloatingActionButton(child: const Icon(Icons.add), onPressed: () {})
+          ? FloatingActionButton(
+              child: const Icon(Icons.add),
+              onPressed: () {
+                addServicesDialog(context);
+              })
           : null,
       appBar: AppBar(
         title: TextWidget(
@@ -76,6 +88,66 @@ class ServicesPage extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  final nameController = TextEditingController();
+  final descController = TextEditingController();
+
+  addServicesDialog(context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: TextWidget(
+            text: 'Posting Services',
+            fontSize: 18,
+            fontFamily: 'Bold',
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                height: 150,
+                width: 300,
+                decoration: const BoxDecoration(
+                  color: Colors.black,
+                ),
+              ),
+              const SizedBox(
+                height: 20,
+              ),
+              TextFieldWidget(
+                  label: 'Name of Service', controller: nameController),
+              const SizedBox(
+                height: 20,
+              ),
+              TextFieldWidget(
+                  label: 'Description of Service', controller: descController),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: TextWidget(
+                text: 'Close',
+                fontSize: 14,
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: TextWidget(
+                text: 'Post',
+                fontSize: 14,
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

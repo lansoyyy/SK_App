@@ -1,16 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:sk_app/widgets/text_widget.dart';
+import 'package:intl/intl.dart';
+import '../../utils/colors.dart';
+import '../../widgets/textfield_widget.dart';
 
-class ActivitiesPage extends StatelessWidget {
+class ActivitiesPage extends StatefulWidget {
+  const ActivitiesPage({super.key});
+
+  @override
+  State<ActivitiesPage> createState() => _ActivitiesPageState();
+}
+
+class _ActivitiesPageState extends State<ActivitiesPage> {
   final box = GetStorage();
 
-  ActivitiesPage({super.key});
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       floatingActionButton: box.read('role') == 'Admin'
-          ? FloatingActionButton(child: const Icon(Icons.add), onPressed: () {})
+          ? FloatingActionButton(
+              child: const Icon(Icons.add),
+              onPressed: () {
+                addActivityDialog(context);
+              })
           : null,
       appBar: AppBar(
         title: TextWidget(
@@ -53,5 +66,197 @@ class ActivitiesPage extends StatelessWidget {
         },
       ),
     );
+  }
+
+  final nameController = TextEditingController();
+  final descController = TextEditingController();
+  final dateController = TextEditingController();
+
+  addActivityDialog(context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: TextWidget(
+            text: 'Posting Activities',
+            fontSize: 18,
+            fontFamily: 'Bold',
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                height: 150,
+                width: 300,
+                decoration: const BoxDecoration(
+                  color: Colors.black,
+                ),
+              ),
+              const SizedBox(
+                height: 20,
+              ),
+              TextFieldWidget(
+                  label: 'Name of Activity', controller: nameController),
+              const SizedBox(
+                height: 20,
+              ),
+              TextFieldWidget(
+                  label: 'Description of Activity', controller: descController),
+              const SizedBox(
+                height: 20,
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  RichText(
+                    text: const TextSpan(
+                      children: [
+                        TextSpan(
+                          text: 'Date',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontFamily: 'Bold',
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        TextSpan(
+                          text: '*',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontFamily: 'Bold',
+                            color: Colors.red,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 5,
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      dateFromPicker(context);
+                    },
+                    child: SizedBox(
+                      width: 325,
+                      height: 50,
+                      child: TextFormField(
+                        enabled: false,
+                        style: const TextStyle(
+                          fontFamily: 'Regular',
+                          fontSize: 14,
+                          color: primary,
+                        ),
+
+                        decoration: InputDecoration(
+                          suffixIcon: const Icon(
+                            Icons.calendar_month_outlined,
+                            color: primary,
+                          ),
+                          hintStyle: const TextStyle(
+                            fontFamily: 'Regular',
+                            fontSize: 14,
+                            color: Colors.grey,
+                          ),
+                          hintText: dateController.text,
+                          border: InputBorder.none,
+                          disabledBorder: OutlineInputBorder(
+                            borderSide: const BorderSide(
+                              color: Colors.grey,
+                            ),
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: const BorderSide(
+                              color: Colors.grey,
+                            ),
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: const BorderSide(
+                              color: Colors.grey,
+                            ),
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          errorBorder: OutlineInputBorder(
+                            borderSide: const BorderSide(
+                              color: Colors.red,
+                            ),
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          errorStyle:
+                              const TextStyle(fontFamily: 'Bold', fontSize: 12),
+                          focusedErrorBorder: OutlineInputBorder(
+                            borderSide: const BorderSide(
+                              color: Colors.red,
+                            ),
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                        ),
+
+                        controller: dateController,
+                        // Pass the validator to the TextFormField
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: TextWidget(
+                text: 'Close',
+                fontSize: 14,
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: TextWidget(
+                text: 'Post',
+                fontSize: 14,
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void dateFromPicker(BuildContext context) async {
+    DateTime? pickedDate = await showDatePicker(
+        builder: (context, child) {
+          return Theme(
+            data: Theme.of(context).copyWith(
+              colorScheme: const ColorScheme.light(
+                primary: primary,
+                onPrimary: Colors.white,
+                onSurface: Colors.grey,
+              ),
+            ),
+            child: child!,
+          );
+        },
+        context: context,
+        initialDate: DateTime.now(),
+        firstDate: DateTime(2000),
+        lastDate: DateTime(2050));
+
+    if (pickedDate != null) {
+      String formattedDate = DateFormat('yyyy-MM-dd').format(pickedDate);
+
+      setState(() {
+        dateController.text = formattedDate;
+      });
+    } else {
+      return null;
+    }
   }
 }
