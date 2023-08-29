@@ -1,5 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:intl/intl.dart';
+import 'package:sk_app/services/add_announcements.dart';
 import 'package:sk_app/widgets/text_widget.dart';
 import 'package:sk_app/widgets/textfield_widget.dart';
 
@@ -33,37 +36,62 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
         ),
         centerTitle: true,
       ),
-      body: ListView.builder(
-        itemBuilder: (context, index) {
-          return Padding(
-            padding: const EdgeInsets.all(5.0),
-            child: Card(
-              child: SizedBox(
-                height: 100,
-                child: ListTile(
-                  title: TextWidget(
-                    text: 'Name of the\nAnnouncements',
-                    fontSize: 18,
-                    color: Colors.black,
-                    fontFamily: 'Bold',
+      body: StreamBuilder<QuerySnapshot>(
+          stream: FirebaseFirestore.instance
+              .collection('Announcements')
+              .snapshots(),
+          builder:
+              (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+            if (snapshot.hasError) {
+              print(snapshot.error);
+              return const Center(child: Text('Error'));
+            }
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Padding(
+                padding: EdgeInsets.only(top: 50),
+                child: Center(
+                    child: CircularProgressIndicator(
+                  color: Colors.black,
+                )),
+              );
+            }
+
+            final data = snapshot.requireData;
+            return ListView.builder(
+              itemCount: data.docs.length,
+              itemBuilder: (context, index) {
+                return Padding(
+                  padding: const EdgeInsets.all(5.0),
+                  child: Card(
+                    child: SizedBox(
+                      height: 100,
+                      child: ListTile(
+                        title: TextWidget(
+                          text: data.docs[index]['name'],
+                          fontSize: 18,
+                          color: Colors.black,
+                          fontFamily: 'Bold',
+                        ),
+                        subtitle: TextWidget(
+                          text: data.docs[index]['description'],
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
+                        trailing: TextWidget(
+                          text: DateFormat.yMMMd()
+                              .add_jm()
+                              .format(data.docs[index]['dateTime'].toDate()),
+                          fontSize: 12,
+                          color: Colors.black,
+                          fontFamily: 'Bold',
+                        ),
+                      ),
+                    ),
                   ),
-                  subtitle: TextWidget(
-                    text: 'Details of the Announcements',
-                    fontSize: 12,
-                    color: Colors.grey,
-                  ),
-                  trailing: TextWidget(
-                    text: 'Date and Time',
-                    fontSize: 12,
-                    color: Colors.black,
-                    fontFamily: 'Bold',
-                  ),
-                ),
-              ),
-            ),
-          );
-        },
-      ),
+                );
+              },
+            );
+          }),
     );
   }
 
@@ -112,6 +140,7 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
             ),
             TextButton(
               onPressed: () {
+                addAnnouncement('', nameController.text, descController.text);
                 Navigator.pop(context);
               },
               child: TextWidget(
