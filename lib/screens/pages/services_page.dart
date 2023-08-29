@@ -1,5 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:sk_app/services/add_services.dart';
 import 'package:sk_app/widgets/text_widget.dart';
 
 import '../../widgets/textfield_widget.dart';
@@ -33,61 +35,82 @@ class _ServicesPageState extends State<ServicesPage> {
         ),
         centerTitle: true,
       ),
-      body: Center(
-        child: SingleChildScrollView(
-          child: Wrap(
-            children: [
-              for (int i = 0; i < 100; i++)
-                Padding(
-                  padding: const EdgeInsets.all(5.0),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: Colors.black,
-                      ),
-                    ),
-                    child: Column(
-                      children: [
-                        Container(
-                          height: 100,
-                          width: 175,
-                          decoration: const BoxDecoration(
-                            color: Colors.grey,
-                          ),
-                        ),
-                        Container(
-                          height: 50,
-                          width: 175,
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(2.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                TextWidget(
-                                  text: 'Name of the Service',
-                                  fontSize: 14,
-                                  fontFamily: 'Bold',
-                                ),
-                                TextWidget(
-                                  text: 'Description of the Service',
-                                  fontSize: 12,
-                                  fontFamily: 'Regular',
-                                ),
-                              ],
+      body: StreamBuilder<QuerySnapshot>(
+          stream: FirebaseFirestore.instance.collection('Services').snapshots(),
+          builder:
+              (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+            if (snapshot.hasError) {
+              print(snapshot.error);
+              return const Center(child: Text('Error'));
+            }
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Padding(
+                padding: EdgeInsets.only(top: 50),
+                child: Center(
+                    child: CircularProgressIndicator(
+                  color: Colors.black,
+                )),
+              );
+            }
+
+            final data = snapshot.requireData;
+            return Center(
+              child: SingleChildScrollView(
+                child: Wrap(
+                  children: [
+                    for (int i = 0; i < data.docs.length; i++)
+                      Padding(
+                        padding: const EdgeInsets.all(5.0),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: Colors.black,
                             ),
                           ),
+                          child: Column(
+                            children: [
+                              Container(
+                                height: 100,
+                                width: 175,
+                                decoration: const BoxDecoration(
+                                  color: Colors.grey,
+                                ),
+                              ),
+                              Container(
+                                height: 50,
+                                width: 175,
+                                decoration: const BoxDecoration(
+                                  color: Colors.white,
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(2.0),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      TextWidget(
+                                        text: data.docs[i]['name'],
+                                        fontSize: 14,
+                                        fontFamily: 'Bold',
+                                      ),
+                                      TextWidget(
+                                        text: data.docs[i]['description'],
+                                        fontSize: 12,
+                                        fontFamily: 'Regular',
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ],
-                    ),
-                  ),
+                      ),
+                  ],
                 ),
-            ],
-          ),
-        ),
-      ),
+              ),
+            );
+          }),
     );
   }
 
@@ -138,6 +161,7 @@ class _ServicesPageState extends State<ServicesPage> {
             ),
             TextButton(
               onPressed: () {
+                addServices('', nameController.text, descController.text);
                 Navigator.pop(context);
               },
               child: TextWidget(
