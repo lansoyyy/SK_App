@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:sk_app/services/add_crowdsourcing.dart';
 
 import '../../widgets/text_widget.dart';
+import '../../widgets/textfield_widget.dart';
 
 class CroudsourcingPage extends StatefulWidget {
   const CroudsourcingPage({super.key});
@@ -22,12 +24,21 @@ class _CroudsourcingPageState extends State<CroudsourcingPage> {
     });
   }
 
+  final nameController = TextEditingController();
+  final descController = TextEditingController();
+
+  List<Map<String, dynamic>> options = [];
+
   final box = GetStorage();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       floatingActionButton: box.read('role') == 'Admin'
-          ? FloatingActionButton(child: const Icon(Icons.add), onPressed: () {})
+          ? FloatingActionButton(
+              child: const Icon(Icons.add),
+              onPressed: () {
+                addAnnouncementDialog(context);
+              })
           : null,
       appBar: AppBar(
         title: TextWidget(
@@ -118,6 +129,63 @@ class _CroudsourcingPageState extends State<CroudsourcingPage> {
           );
         },
       ),
+    );
+  }
+
+  addAnnouncementDialog(context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: TextWidget(
+            text: 'Posting Announcement',
+            fontSize: 18,
+            fontFamily: 'Bold',
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                height: 150,
+                width: 300,
+                decoration: const BoxDecoration(
+                  color: Colors.black,
+                ),
+              ),
+              const SizedBox(
+                height: 20,
+              ),
+              TextFieldWidget(label: 'Name', controller: nameController),
+              const SizedBox(
+                height: 20,
+              ),
+              TextFieldWidget(label: 'Description', controller: descController),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: TextWidget(
+                text: 'Close',
+                fontSize: 14,
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                addCrowdsourcing(
+                    '', nameController.text, descController.text, options);
+                Navigator.pop(context);
+              },
+              child: TextWidget(
+                text: 'Add',
+                fontSize: 14,
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }
