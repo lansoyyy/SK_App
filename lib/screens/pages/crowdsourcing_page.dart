@@ -1,7 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:sk_app/services/add_crowdsourcing.dart';
 
+import '../../services/add_crowdsourcing.dart';
 import '../../widgets/text_widget.dart';
 import '../../widgets/textfield_widget.dart';
 
@@ -37,7 +39,7 @@ class _CroudsourcingPageState extends State<CroudsourcingPage> {
           ? FloatingActionButton(
               child: const Icon(Icons.add),
               onPressed: () {
-                addAnnouncementDialog(context);
+                addCrowdsourcingDialog(context);
               })
           : null,
       appBar: AppBar(
@@ -49,119 +51,176 @@ class _CroudsourcingPageState extends State<CroudsourcingPage> {
         ),
         centerTitle: true,
       ),
-      body: ListView.separated(
-        itemCount: 100,
-        separatorBuilder: (context, index) {
-          return const Divider();
-        },
-        itemBuilder: (context, index) {
-          return Padding(
-            padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    const CircleAvatar(
-                      minRadius: 25,
-                      maxRadius: 25,
-                    ),
-                    const SizedBox(
-                      width: 20,
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        TextWidget(
-                          text: 'John Doe',
-                          fontSize: 18,
-                          fontFamily: 'Bold',
-                        ),
-                        TextWidget(
-                          text: 'Youth Participant',
-                          fontSize: 12,
-                          fontFamily: 'Regular',
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                const SizedBox(
-                  height: 10,
-                ),
-                Container(
-                  width: double.infinity,
-                  height: 150,
-                  decoration: BoxDecoration(
-                    color: Colors.black,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                Center(
+      body: StreamBuilder<QuerySnapshot>(
+          stream: FirebaseFirestore.instance
+              .collection('Crowdsourcing')
+              .snapshots(),
+          builder:
+              (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+            if (snapshot.hasError) {
+              print(snapshot.error);
+              return const Center(child: Text('Error'));
+            }
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Padding(
+                padding: EdgeInsets.only(top: 50),
+                child: Center(
+                    child: CircularProgressIndicator(
+                  color: Colors.black,
+                )),
+              );
+            }
+
+            final data = snapshot.requireData;
+            return ListView.separated(
+              itemCount: data.docs.length,
+              separatorBuilder: (context, index) {
+                return const Divider();
+              },
+              itemBuilder: (context, index) {
+                return Padding(
+                  padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      const Text(
-                        'What is your favorite option?',
-                        style: TextStyle(fontSize: 20.0),
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(
+                        height: 10,
                       ),
-                      const SizedBox(height: 20.0),
-                      ListView.builder(
-                        shrinkWrap: true,
-                        itemCount: pollOptions.length,
-                        itemBuilder: (context, index) {
-                          return PollOptionCard(
-                            pollOption: pollOptions[index],
-                            onPressed: () {
-                              _voteForOption(index);
-                            },
-                          );
-                        },
+                      Container(
+                        width: double.infinity,
+                        height: 150,
+                        decoration: BoxDecoration(
+                          color: Colors.black,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Text(
+                                data.docs[index]['name'],
+                                style: const TextStyle(fontSize: 18.0),
+                              ),
+                              Text(
+                                data.docs[index]['description'],
+                                style: const TextStyle(fontSize: 12.0),
+                              ),
+                              const SizedBox(height: 20.0),
+                              ListView.builder(
+                                shrinkWrap: true,
+                                itemCount: data.docs[index]['options'].length,
+                                itemBuilder: (context, index1) {
+                                  return PollOptionCard(
+                                    hasVoted: data.docs[index]['votes']
+                                        .contains(FirebaseAuth
+                                            .instance.currentUser!.uid),
+                                    pollOption: PollOption(
+                                        votes: data.docs[index][data.docs[index]
+                                            ['options'][index1]],
+                                        text: data.docs[index]['options']
+                                            [index1]),
+                                    onPressed: () async {
+                                      _voteForOption(index);
+                                      await FirebaseFirestore.instance
+                                          .collection('Crowdsourcing')
+                                          .doc(data.docs[index].id)
+                                          .update({
+                                        data.docs[index]['options'][index1]:
+                                            data.docs[index][data.docs[index]
+                                                    ['options'][index1]] +
+                                                1,
+                                        'votes': FieldValue.arrayUnion([
+                                          FirebaseAuth
+                                              .instance.currentUser!.uid,
+                                        ])
+                                      });
+                                    },
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     ],
                   ),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
+                );
+              },
+            );
+          }),
     );
   }
 
-  addAnnouncementDialog(context) {
+  addCrowdsourcingDialog(context) {
     showDialog(
       context: context,
       builder: (context) {
+        // Define a list to hold answer controllers
+        List<TextEditingController> answerControllers = [];
+
+        // Function to add a new answer field
+
         return AlertDialog(
-          title: TextWidget(
-            text: 'Posting Announcement',
-            fontSize: 18,
-            fontFamily: 'Bold',
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                height: 150,
-                width: 300,
-                decoration: const BoxDecoration(
-                  color: Colors.black,
-                ),
+          content: StatefulBuilder(builder: (context, setState) {
+            return SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    height: 150,
+                    width: 300,
+                    decoration: const BoxDecoration(
+                      color: Colors.black,
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 20,
+                  ),
+                  TextFieldWidget(label: 'Name', controller: nameController),
+                  const SizedBox(
+                    height: 20,
+                  ),
+                  TextFieldWidget(
+                      label: 'Description', controller: descController),
+                  const SizedBox(
+                    height: 20,
+                  ),
+                  // Display answer input fields
+                  if (answerControllers.isNotEmpty)
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Option:',
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        for (int i = 0; i < answerControllers.length; i++)
+                          TextFieldWidget(
+                              label: 'Option ${i + 1}',
+                              controller: answerControllers[i]),
+                      ],
+                    ),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  // Button to add new answer field
+                  TextButton(
+                    onPressed: () {
+                      setState(() {
+                        answerControllers.add(TextEditingController());
+                      });
+                    },
+                    child: TextWidget(
+                      text: 'Add Answer',
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(
-                height: 20,
-              ),
-              TextFieldWidget(label: 'Name', controller: nameController),
-              const SizedBox(
-                height: 20,
-              ),
-              TextFieldWidget(label: 'Description', controller: descController),
-            ],
-          ),
+            );
+          }),
           actions: [
             TextButton(
               onPressed: () {
@@ -174,8 +233,13 @@ class _CroudsourcingPageState extends State<CroudsourcingPage> {
             ),
             TextButton(
               onPressed: () {
+                // Access the answer values from controllers
+                List<String> answers = answerControllers
+                    .map((controller) => controller.text)
+                    .toList();
+
                 addCrowdsourcing(
-                    '', nameController.text, descController.text, options);
+                    '', nameController.text, descController.text, answers);
                 Navigator.pop(context);
               },
               child: TextWidget(
@@ -200,9 +264,13 @@ class PollOption {
 class PollOptionCard extends StatelessWidget {
   final PollOption pollOption;
   final VoidCallback onPressed;
+  final bool? hasVoted;
 
   const PollOptionCard(
-      {super.key, required this.pollOption, required this.onPressed});
+      {super.key,
+      required this.pollOption,
+      required this.onPressed,
+      required this.hasVoted});
 
   @override
   Widget build(BuildContext context) {
@@ -211,10 +279,12 @@ class PollOptionCard extends StatelessWidget {
       child: ListTile(
         title: Text(pollOption.text),
         subtitle: Text('Votes: ${pollOption.votes}'),
-        trailing: ElevatedButton(
-          onPressed: onPressed,
-          child: const Text('Vote'),
-        ),
+        trailing: hasVoted == true
+            ? const SizedBox()
+            : ElevatedButton(
+                onPressed: onPressed,
+                child: const Text('Vote'),
+              ),
       ),
     );
   }
