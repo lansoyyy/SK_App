@@ -1,7 +1,12 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:sk_app/services/add_survey.dart';
+import 'package:sk_app/widgets/toast_widget.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../widgets/text_widget.dart';
+import '../../widgets/textfield_widget.dart';
 
 class SurveyPage extends StatefulWidget {
   const SurveyPage({super.key});
@@ -24,7 +29,11 @@ class _SurveyPageState extends State<SurveyPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       floatingActionButton: box.read('role') == 'Admin'
-          ? FloatingActionButton(child: const Icon(Icons.add), onPressed: () {})
+          ? FloatingActionButton(
+              child: const Icon(Icons.add),
+              onPressed: () {
+                addSourveyDialog();
+              })
           : null,
       appBar: AppBar(
         title: TextWidget(
@@ -35,43 +44,125 @@ class _SurveyPageState extends State<SurveyPage> {
         ),
         centerTitle: true,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              const Text(
-                'Please take a moment to complete our survey:',
-                style: TextStyle(fontSize: 18),
+      body: StreamBuilder<QuerySnapshot>(
+          stream: FirebaseFirestore.instance.collection('Surveys').snapshots(),
+          builder:
+              (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+            if (snapshot.hasError) {
+              print(snapshot.error);
+              return const Center(child: Text('Error'));
+            }
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Padding(
+                padding: EdgeInsets.only(top: 50),
+                child: Center(
+                    child: CircularProgressIndicator(
+                  color: Colors.black,
+                )),
+              );
+            }
+
+            final data = snapshot.requireData;
+            return ListView.builder(
+              itemCount: data.docs.length,
+              itemBuilder: (context, index) {
+                return Padding(
+                  padding: const EdgeInsets.all(5.0),
+                  child: Card(
+                    child: SizedBox(
+                      height: 75,
+                      child: ListTile(
+                        onTap: () async {
+                          if (await canLaunchUrl(
+                              Uri.parse(data.docs[index]['link']))) {
+                            await launchUrl(
+                                Uri.parse(data.docs[index]['link']));
+                          } else {
+                            showToast('Invalid google form link');
+                          }
+                        },
+                        title: TextWidget(
+                          text: data.docs[index]['name'],
+                          fontSize: 18,
+                          color: Colors.black,
+                          fontFamily: 'Bold',
+                        ),
+                        subtitle: TextWidget(
+                          text: data.docs[index]['description'],
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
+                        trailing: const Icon(
+                          Icons.open_in_browser,
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            );
+          }),
+    );
+  }
+
+  final nameController = TextEditingController();
+  final descController = TextEditingController();
+  final linkController = TextEditingController();
+
+  addSourveyDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: TextWidget(
+            text: 'Posting Survey',
+            fontSize: 18,
+            fontFamily: 'Bold',
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(
+                height: 20,
               ),
-              const SizedBox(height: 20),
-              _buildQuestion('Q1. How satisfied are you with our service?'),
-              _buildRadioOption('Q1', 'Very Satisfied'),
-              _buildRadioOption('Q1', 'Satisfied'),
-              _buildRadioOption('Q1', 'Neutral'),
-              _buildRadioOption('Q1', 'Dissatisfied'),
-              _buildRadioOption('Q1', 'Very Dissatisfied'),
-              const SizedBox(height: 20),
-              _buildQuestion('Q2. Would you recommend our app to others?'),
-              _buildRadioOption('Q2', 'Definitely'),
-              _buildRadioOption('Q2', 'Probably'),
-              _buildRadioOption('Q2', 'Not Sure'),
-              _buildRadioOption('Q2', 'Probably Not'),
-              _buildRadioOption('Q2', 'Definitely Not'),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () {
-                  // Handle survey submission here (e.g., send to server).
-                  // surveyAnswers contains the user's responses.
-                  print(surveyAnswers);
-                },
-                child: const Text('Submit Survey'),
+              TextFieldWidget(
+                  label: 'Name of Survey', controller: nameController),
+              const SizedBox(
+                height: 20,
               ),
+              TextFieldWidget(
+                  label: 'Description of Survey', controller: descController),
+              const SizedBox(
+                height: 20,
+              ),
+              TextFieldWidget(
+                  label: 'Google Form Link', controller: linkController),
             ],
           ),
-        ),
-      ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: TextWidget(
+                text: 'Close',
+                fontSize: 14,
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                addSurvey(nameController.text, descController.text,
+                    linkController.text);
+                Navigator.pop(context);
+              },
+              child: TextWidget(
+                text: 'Post',
+                fontSize: 14,
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
