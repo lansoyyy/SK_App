@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:sk_app/services/add_activities.dart';
@@ -6,6 +7,10 @@ import 'package:sk_app/widgets/text_widget.dart';
 import 'package:intl/intl.dart';
 import '../../utils/colors.dart';
 import '../../widgets/textfield_widget.dart';
+import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
+import 'package:path/path.dart' as path;
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 class ActivitiesPage extends StatefulWidget {
   const ActivitiesPage({super.key});
@@ -15,6 +20,74 @@ class ActivitiesPage extends StatefulWidget {
 }
 
 class _ActivitiesPageState extends State<ActivitiesPage> {
+  late String idFileName = '';
+
+  late File idImageFile;
+
+  late String idImageURL = '';
+
+  Future<void> uploadImage(String inputSource) async {
+    final picker = ImagePicker();
+    XFile pickedImage;
+    try {
+      pickedImage = (await picker.pickImage(
+          source: inputSource == 'camera'
+              ? ImageSource.camera
+              : ImageSource.gallery,
+          maxWidth: 1920))!;
+
+      idFileName = path.basename(pickedImage.path);
+      idImageFile = File(pickedImage.path);
+
+      try {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) => const Padding(
+            padding: EdgeInsets.only(left: 30, right: 30),
+            child: AlertDialog(
+                title: Row(
+              children: [
+                CircularProgressIndicator(
+                  color: Colors.black,
+                ),
+                SizedBox(
+                  width: 20,
+                ),
+                Text(
+                  'Loading . . .',
+                  style: TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'QRegular'),
+                ),
+              ],
+            )),
+          ),
+        );
+
+        await firebase_storage.FirebaseStorage.instance
+            .ref('Document/$idFileName')
+            .putFile(idImageFile);
+        idImageURL = await firebase_storage.FirebaseStorage.instance
+            .ref('Document/$idFileName')
+            .getDownloadURL();
+
+        Navigator.of(context).pop();
+        Navigator.of(context).pop();
+        addActivityDialog(context);
+      } on firebase_storage.FirebaseException catch (error) {
+        if (kDebugMode) {
+          print(error);
+        }
+      }
+    } catch (err) {
+      if (kDebugMode) {
+        print(err);
+      }
+    }
+  }
+
   final box = GetStorage();
 
   @override
@@ -109,11 +182,27 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                height: 150,
-                width: 300,
-                decoration: const BoxDecoration(
-                  color: Colors.black,
+              GestureDetector(
+                onTap: () {
+                  uploadImage('gallery');
+                },
+                child: Container(
+                  height: 150,
+                  width: 300,
+                  decoration: BoxDecoration(
+                    color: Colors.black,
+                    image: idFileName == ''
+                        ? null
+                        : DecorationImage(
+                            image: NetworkImage(
+                              idImageURL,
+                            ),
+                            fit: BoxFit.cover),
+                  ),
+                  child: const Icon(
+                    Icons.add,
+                    color: Colors.white,
+                  ),
                 ),
               ),
               const SizedBox(
@@ -241,8 +330,8 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
             ),
             TextButton(
               onPressed: () {
-                addActivities('', nameController.text, descController.text,
-                    dateController.text);
+                addActivities(idImageURL, nameController.text,
+                    descController.text, dateController.text);
                 Navigator.pop(context);
               },
               child: TextWidget(

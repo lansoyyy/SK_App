@@ -108,13 +108,6 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                height: 150,
-                width: 300,
-                decoration: const BoxDecoration(
-                  color: Colors.black,
-                ),
-              ),
               const SizedBox(
                 height: 20,
               ),

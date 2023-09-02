@@ -1,9 +1,14 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:sk_app/services/add_services.dart';
 import 'package:sk_app/widgets/text_widget.dart';
-
+import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
+import 'package:path/path.dart' as path;
+import 'package:image_picker/image_picker.dart';
 import '../../widgets/textfield_widget.dart';
 
 class ServicesPage extends StatefulWidget {
@@ -15,6 +20,74 @@ class ServicesPage extends StatefulWidget {
 
 class _ServicesPageState extends State<ServicesPage> {
   final box = GetStorage();
+
+  late String idFileName = '';
+
+  late File idImageFile;
+
+  late String idImageURL = '';
+
+  Future<void> uploadImage(String inputSource) async {
+    final picker = ImagePicker();
+    XFile pickedImage;
+    try {
+      pickedImage = (await picker.pickImage(
+          source: inputSource == 'camera'
+              ? ImageSource.camera
+              : ImageSource.gallery,
+          maxWidth: 1920))!;
+
+      idFileName = path.basename(pickedImage.path);
+      idImageFile = File(pickedImage.path);
+
+      try {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) => const Padding(
+            padding: EdgeInsets.only(left: 30, right: 30),
+            child: AlertDialog(
+                title: Row(
+              children: [
+                CircularProgressIndicator(
+                  color: Colors.black,
+                ),
+                SizedBox(
+                  width: 20,
+                ),
+                Text(
+                  'Loading . . .',
+                  style: TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'QRegular'),
+                ),
+              ],
+            )),
+          ),
+        );
+
+        await firebase_storage.FirebaseStorage.instance
+            .ref('Document/$idFileName')
+            .putFile(idImageFile);
+        idImageURL = await firebase_storage.FirebaseStorage.instance
+            .ref('Document/$idFileName')
+            .getDownloadURL();
+
+        Navigator.of(context).pop();
+        Navigator.of(context).pop();
+        addServicesDialog(context);
+      } on firebase_storage.FirebaseException catch (error) {
+        if (kDebugMode) {
+          print(error);
+        }
+      }
+    } catch (err) {
+      if (kDebugMode) {
+        print(err);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -72,8 +145,13 @@ class _ServicesPageState extends State<ServicesPage> {
                               Container(
                                 height: 100,
                                 width: 175,
-                                decoration: const BoxDecoration(
+                                decoration: BoxDecoration(
                                   color: Colors.grey,
+                                  image: DecorationImage(
+                                      image: NetworkImage(
+                                        data.docs[i]['imageUrl'],
+                                      ),
+                                      fit: BoxFit.cover),
                                 ),
                               ),
                               Container(
@@ -127,28 +205,49 @@ class _ServicesPageState extends State<ServicesPage> {
             fontSize: 18,
             fontFamily: 'Bold',
           ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                height: 150,
-                width: 300,
-                decoration: const BoxDecoration(
-                  color: Colors.black,
-                ),
+          content: StatefulBuilder(builder: (context, setState) {
+            return SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      uploadImage('gallery');
+                    },
+                    child: Container(
+                      height: 150,
+                      width: 300,
+                      decoration: BoxDecoration(
+                        color: Colors.black,
+                        image: idFileName == ''
+                            ? null
+                            : DecorationImage(
+                                image: NetworkImage(
+                                  idImageURL,
+                                ),
+                                fit: BoxFit.cover),
+                      ),
+                      child: const Icon(
+                        Icons.add,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 20,
+                  ),
+                  TextFieldWidget(
+                      label: 'Name of Service', controller: nameController),
+                  const SizedBox(
+                    height: 20,
+                  ),
+                  TextFieldWidget(
+                      label: 'Description of Service',
+                      controller: descController),
+                ],
               ),
-              const SizedBox(
-                height: 20,
-              ),
-              TextFieldWidget(
-                  label: 'Name of Service', controller: nameController),
-              const SizedBox(
-                height: 20,
-              ),
-              TextFieldWidget(
-                  label: 'Description of Service', controller: descController),
-            ],
-          ),
+            );
+          }),
           actions: [
             TextButton(
               onPressed: () {
@@ -161,7 +260,8 @@ class _ServicesPageState extends State<ServicesPage> {
             ),
             TextButton(
               onPressed: () {
-                addServices('', nameController.text, descController.text);
+                addServices(
+                    idImageURL, nameController.text, descController.text);
                 Navigator.pop(context);
               },
               child: TextWidget(
