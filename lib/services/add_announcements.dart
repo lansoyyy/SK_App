@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+import 'add_notif.dart';
+
 Future addAnnouncement(
   imageUrl,
   name,
@@ -16,6 +18,8 @@ Future addAnnouncement(
     'id': docUser.id,
     'userId': FirebaseAuth.instance.currentUser!.uid,
   };
+
+  addNotif('New Announcement is posted: $name');
 
   await docUser.set(json);
 }

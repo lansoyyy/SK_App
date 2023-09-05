@@ -2,10 +2,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:sk_app/screens/auth/login_screen.dart';
 import 'package:sk_app/screens/pages/activities_page.dart';
 import 'package:sk_app/screens/pages/announcements_page.dart';
 import 'package:sk_app/screens/pages/crowdsourcing_page.dart';
 import 'package:sk_app/screens/pages/helpdesk/main_helpdesk_page.dart';
+import 'package:sk_app/screens/pages/notif_page.dart';
 import 'package:sk_app/screens/pages/registration_page.dart';
 import 'package:sk_app/screens/pages/services_page.dart';
 import 'package:sk_app/screens/pages/survey_page.dart';
@@ -73,20 +75,129 @@ class _HomeScreenState extends State<HomeScreen> {
                             color: Colors.black,
                             fontFamily: 'Bold',
                           ),
-                          IconButton(
-                              onPressed: () {
-                                showDialog(
-                                  context: context,
-                                  builder: (BuildContext context) {
-                                    return const InstructionsDialog();
+                          Row(
+                            children: [
+                              IconButton(
+                                  onPressed: () {
+                                    showDialog(
+                                      context: context,
+                                      builder: (BuildContext context) {
+                                        return const InstructionsDialog();
+                                      },
+                                    );
                                   },
-                                );
-                              },
-                              icon: const Icon(
-                                Icons.info,
-                                color: Colors.blue,
-                                size: 32,
-                              )),
+                                  icon: const Icon(
+                                    Icons.info,
+                                    color: Colors.blue,
+                                    size: 32,
+                                  )),
+                              box.read('role') != 'Admin'
+                                  ? IconButton(
+                                      onPressed: () async {
+                                        Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                                builder: (context) =>
+                                                    const NotifPage()));
+                                      },
+                                      icon: StreamBuilder<QuerySnapshot>(
+                                          stream: FirebaseFirestore.instance
+                                              .collection('Notif')
+                                              .snapshots(),
+                                          builder: (BuildContext context,
+                                              AsyncSnapshot<QuerySnapshot>
+                                                  snapshot) {
+                                            if (snapshot.hasError) {
+                                              print(snapshot.error);
+                                              return const Center(
+                                                  child: Text('Error'));
+                                            }
+                                            if (snapshot.connectionState ==
+                                                ConnectionState.waiting) {
+                                              return const Padding(
+                                                padding:
+                                                    EdgeInsets.only(top: 50),
+                                                child: Center(
+                                                    child:
+                                                        CircularProgressIndicator(
+                                                  color: Colors.black,
+                                                )),
+                                              );
+                                            }
+
+                                            final data = snapshot.requireData;
+                                            return Badge(
+                                              label: TextWidget(
+                                                  text: data.docs.length
+                                                      .toString(),
+                                                  color: Colors.white,
+                                                  fontSize: 12),
+                                              child: const Icon(
+                                                Icons.notifications,
+                                                color: Colors.blue,
+                                              ),
+                                            );
+                                          }),
+                                    )
+                                  : const SizedBox(),
+                              IconButton(
+                                  onPressed: () {
+                                    showDialog(
+                                        context: context,
+                                        builder: (context) => AlertDialog(
+                                              title: const Text(
+                                                'Logout Confirmation',
+                                                style: TextStyle(
+                                                    fontFamily: 'QBold',
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                              ),
+                                              content: const Text(
+                                                'Are you sure you want to Logout?',
+                                                style: TextStyle(
+                                                    fontFamily: 'QRegular'),
+                                              ),
+                                              actions: <Widget>[
+                                                MaterialButton(
+                                                  onPressed: () =>
+                                                      Navigator.of(context)
+                                                          .pop(true),
+                                                  child: const Text(
+                                                    'Close',
+                                                    style: TextStyle(
+                                                        fontFamily: 'QRegular',
+                                                        fontWeight:
+                                                            FontWeight.bold),
+                                                  ),
+                                                ),
+                                                MaterialButton(
+                                                  onPressed: () async {
+                                                    await FirebaseAuth.instance
+                                                        .signOut();
+                                                    Navigator.of(context)
+                                                        .pushReplacement(
+                                                            MaterialPageRoute(
+                                                                builder:
+                                                                    (context) =>
+                                                                        LoginScreen()));
+                                                  },
+                                                  child: const Text(
+                                                    'Continue',
+                                                    style: TextStyle(
+                                                        fontFamily: 'QRegular',
+                                                        fontWeight:
+                                                            FontWeight.bold),
+                                                  ),
+                                                ),
+                                              ],
+                                            ));
+                                  },
+                                  icon: const Icon(
+                                    Icons.logout,
+                                    color: Colors.blue,
+                                    size: 32,
+                                  )),
+                            ],
+                          ),
                         ],
                       ),
                       const SizedBox(
@@ -120,7 +231,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: ListTile(
                           onTap: () {
                             Navigator.of(context).push(MaterialPageRoute(
-                                builder: (context) => ServicesPage()));
+                                builder: (context) => const ServicesPage()));
                           },
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(5),
@@ -142,7 +253,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: ListTile(
                           onTap: () {
                             Navigator.of(context).push(MaterialPageRoute(
-                                builder: (context) => ActivitiesPage()));
+                                builder: (context) => const ActivitiesPage()));
                           },
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(5),
