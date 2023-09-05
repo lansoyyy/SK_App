@@ -108,13 +108,11 @@ class _CroudsourcingPageState extends State<CroudsourcingPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButton: box.read('role') == 'Admin'
-          ? FloatingActionButton(
-              child: const Icon(Icons.add),
-              onPressed: () {
-                addCrowdsourcingDialog(context);
-              })
-          : null,
+      floatingActionButton: FloatingActionButton(
+          child: const Icon(Icons.add),
+          onPressed: () {
+            addCrowdsourcingDialog(context);
+          }),
       appBar: AppBar(
         title: TextWidget(
           text: 'Crowdsourcing',
@@ -179,9 +177,28 @@ class _CroudsourcingPageState extends State<CroudsourcingPage> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: <Widget>[
-                              Text(
-                                data.docs[index]['name'],
-                                style: const TextStyle(fontSize: 18.0),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    data.docs[index]['name'],
+                                    style: const TextStyle(fontSize: 18.0),
+                                  ),
+                                  box.read('role') == 'Admin'
+                                      ? IconButton(
+                                          onPressed: () async {
+                                            await FirebaseFirestore.instance
+                                                .collection('Crowdsourcing')
+                                                .doc(data.docs[index].id)
+                                                .delete();
+                                          },
+                                          icon: const Icon(
+                                            Icons.delete,
+                                          ),
+                                        )
+                                      : const SizedBox(),
+                                ],
                               ),
                               Text(
                                 data.docs[index]['description'],
