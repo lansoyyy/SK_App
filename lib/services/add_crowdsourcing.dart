@@ -21,6 +21,7 @@ Future addCrowdsourcing(
     'userId': FirebaseAuth.instance.currentUser!.uid,
     'votes': [],
     'comments': [],
+    'new': [],
     for (int i = 0; i < options.length; i++) options[i]: 0
   };
 

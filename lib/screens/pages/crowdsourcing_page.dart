@@ -105,6 +105,7 @@ class _CroudsourcingPageState extends State<CroudsourcingPage> {
     }
   }
 
+  final commentController = TextEditingController();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -185,19 +186,172 @@ class _CroudsourcingPageState extends State<CroudsourcingPage> {
                                     data.docs[index]['name'],
                                     style: const TextStyle(fontSize: 18.0),
                                   ),
-                                  box.read('role') == 'Admin'
-                                      ? IconButton(
-                                          onPressed: () async {
-                                            await FirebaseFirestore.instance
-                                                .collection('Crowdsourcing')
-                                                .doc(data.docs[index].id)
-                                                .delete();
-                                          },
-                                          icon: const Icon(
-                                            Icons.delete,
-                                          ),
-                                        )
-                                      : const SizedBox(),
+                                  Row(
+                                    children: [
+                                      IconButton(
+                                        onPressed: () {
+                                          showDialog(
+                                            context: context,
+                                            builder: (context) {
+                                              return Dialog(
+                                                child: Padding(
+                                                  padding: const EdgeInsets.all(
+                                                      10.0),
+                                                  child: StatefulBuilder(
+                                                      builder:
+                                                          (context, setState) {
+                                                    return SizedBox(
+                                                      height: 500,
+                                                      child: Column(
+                                                        children: [
+                                                          Expanded(
+                                                            child: ListView
+                                                                .separated(
+                                                              separatorBuilder:
+                                                                  (context,
+                                                                      index) {
+                                                                return const Divider();
+                                                              },
+                                                              itemCount: data
+                                                                  .docs[index][
+                                                                      'comments']
+                                                                  .length,
+                                                              itemBuilder:
+                                                                  (context,
+                                                                      index1) {
+                                                                return ListTile(
+                                                                  leading:
+                                                                      const Icon(
+                                                                    Icons
+                                                                        .account_circle_outlined,
+                                                                  ),
+                                                                  title: TextWidget(
+                                                                      text: data.docs[index]['comments']
+                                                                              [
+                                                                              index1]
+                                                                          [
+                                                                          'comment'],
+                                                                      fontSize:
+                                                                          14),
+                                                                  subtitle: TextWidget(
+                                                                      text: data.docs[index]['comments']
+                                                                              [
+                                                                              index1]
+                                                                          [
+                                                                          'name'],
+                                                                      fontSize:
+                                                                          12),
+                                                                );
+                                                              },
+                                                            ),
+                                                          ),
+                                                          Align(
+                                                            alignment: Alignment
+                                                                .bottomCenter,
+                                                            child:
+                                                                TextFormField(
+                                                              controller:
+                                                                  commentController,
+                                                              decoration:
+                                                                  InputDecoration(
+                                                                filled: true,
+                                                                fillColor:
+                                                                    Colors.grey[
+                                                                        300],
+                                                                suffixIcon: StreamBuilder<
+                                                                        DocumentSnapshot>(
+                                                                    stream: FirebaseFirestore
+                                                                        .instance
+                                                                        .collection(
+                                                                            'Users')
+                                                                        .doc(FirebaseAuth
+                                                                            .instance
+                                                                            .currentUser!
+                                                                            .uid)
+                                                                        .snapshots(),
+                                                                    builder: (context,
+                                                                        AsyncSnapshot<DocumentSnapshot>
+                                                                            snapshot) {
+                                                                      if (!snapshot
+                                                                          .hasData) {
+                                                                        return const SizedBox();
+                                                                      } else if (snapshot
+                                                                          .hasError) {
+                                                                        return const Center(
+                                                                            child:
+                                                                                Text('Something went wrong'));
+                                                                      } else if (snapshot
+                                                                              .connectionState ==
+                                                                          ConnectionState
+                                                                              .waiting) {
+                                                                        return const SizedBox();
+                                                                      }
+                                                                      dynamic
+                                                                          data1 =
+                                                                          snapshot
+                                                                              .data;
+                                                                      return IconButton(
+                                                                        onPressed:
+                                                                            () async {
+                                                                          await FirebaseFirestore
+                                                                              .instance
+                                                                              .collection('Crowdsourcing')
+                                                                              .doc(data.docs[index].id)
+                                                                              .update({
+                                                                            'comments':
+                                                                                FieldValue.arrayUnion([
+                                                                              {
+                                                                                'name': data1['name'],
+                                                                                'comment': commentController.text,
+                                                                                'dateTime': DateTime.now()
+                                                                              }
+                                                                            ])
+                                                                          });
+
+                                                                          Navigator.pop(
+                                                                              context);
+
+                                                                          commentController
+                                                                              .clear();
+                                                                        },
+                                                                        icon:
+                                                                            const Icon(
+                                                                          Icons
+                                                                              .send,
+                                                                        ),
+                                                                      );
+                                                                    }),
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    );
+                                                  }),
+                                                ),
+                                              );
+                                            },
+                                          );
+                                        },
+                                        icon: const Icon(
+                                          Icons.comment,
+                                        ),
+                                      ),
+                                      box.read('role') == 'Admin'
+                                          ? IconButton(
+                                              onPressed: () async {
+                                                await FirebaseFirestore.instance
+                                                    .collection('Crowdsourcing')
+                                                    .doc(data.docs[index].id)
+                                                    .delete();
+                                              },
+                                              icon: const Icon(
+                                                Icons.delete,
+                                              ),
+                                            )
+                                          : const SizedBox(),
+                                    ],
+                                  ),
                                 ],
                               ),
                               Text(
@@ -210,6 +364,32 @@ class _CroudsourcingPageState extends State<CroudsourcingPage> {
                                 itemCount: data.docs[index]['options'].length,
                                 itemBuilder: (context, index1) {
                                   return PollOptionCard(
+                                    changeVotePressed: () async {
+                                      _voteForOption(index);
+                                      await FirebaseFirestore.instance
+                                          .collection('Crowdsourcing')
+                                          .doc(data.docs[index].id)
+                                          .update({
+                                        data.docs[index]['options'][index1]:
+                                            data.docs[index][data.docs[index]
+                                                    ['options'][index1]] +
+                                                1,
+                                        'votes': FieldValue.arrayUnion([
+                                          FirebaseAuth
+                                              .instance.currentUser!.uid,
+                                        ])
+                                      });
+
+                                      // await FirebaseFirestore.instance
+                                      //     .collection('Crowdsourcing')
+                                      //     .doc(data.docs[index].id)
+                                      //     .update({
+                                      //   data.docs[index]['options'][0]:
+                                      //       data.docs[index][data.docs[index]
+                                      //               ['options'][0]] -
+                                      //           1,
+                                      // });
+                                    },
                                     hasVoted: data.docs[index]['votes']
                                         .contains(FirebaseAuth
                                             .instance.currentUser!.uid),
@@ -375,12 +555,14 @@ class PollOption {
 class PollOptionCard extends StatelessWidget {
   final PollOption pollOption;
   final VoidCallback onPressed;
+  final VoidCallback changeVotePressed;
   final bool? hasVoted;
 
   const PollOptionCard(
       {super.key,
       required this.pollOption,
       required this.onPressed,
+      required this.changeVotePressed,
       required this.hasVoted});
 
   @override
@@ -391,7 +573,10 @@ class PollOptionCard extends StatelessWidget {
         title: Text(pollOption.text),
         subtitle: Text('Votes: ${pollOption.votes}'),
         trailing: hasVoted == true
-            ? const SizedBox()
+            ? ElevatedButton(
+                onPressed: changeVotePressed,
+                child: const Text('Change Vote'),
+              )
             : ElevatedButton(
                 onPressed: onPressed,
                 child: const Text('Vote'),
