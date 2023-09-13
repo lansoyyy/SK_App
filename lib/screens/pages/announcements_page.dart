@@ -24,7 +24,7 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
           ? FloatingActionButton(
               child: const Icon(Icons.add),
               onPressed: () {
-                addAnnouncementDialog();
+                addAnnouncementDialog(false, '');
               })
           : null,
       appBar: AppBar(
@@ -66,6 +66,14 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
                     child: SizedBox(
                       height: 100,
                       child: ListTile(
+                        onTap: () {
+                          setState(() {
+                            nameController.text = data.docs[index]['name'];
+                            descController.text =
+                                data.docs[index]['description'];
+                          });
+                          addAnnouncementDialog(true, data.docs[index].id);
+                        },
                         title: TextWidget(
                           text: data.docs[index]['name'],
                           fontSize: 18,
@@ -95,7 +103,7 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
     );
   }
 
-  addAnnouncementDialog() {
+  addAnnouncementDialog(bool inEdit, String id) {
     showDialog(
       context: context,
       builder: (context) {
@@ -132,8 +140,18 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
               ),
             ),
             TextButton(
-              onPressed: () {
-                addAnnouncement('', nameController.text, descController.text);
+              onPressed: () async {
+                if (inEdit) {
+                  FirebaseFirestore.instance
+                      .collection('Announcements')
+                      .doc(id)
+                      .update({
+                    'name': nameController.text,
+                    'description': descController.text
+                  });
+                } else {
+                  addAnnouncement('', nameController.text, descController.text);
+                }
                 Navigator.pop(context);
               },
               child: TextWidget(
