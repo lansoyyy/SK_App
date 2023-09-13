@@ -67,12 +67,14 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
                       height: 100,
                       child: ListTile(
                         onTap: () {
-                          setState(() {
-                            nameController.text = data.docs[index]['name'];
-                            descController.text =
-                                data.docs[index]['description'];
-                          });
-                          addAnnouncementDialog(true, data.docs[index].id);
+                          if (box.read('role') == 'Admin') {
+                            setState(() {
+                              nameController.text = data.docs[index]['name'];
+                              descController.text =
+                                  data.docs[index]['description'];
+                            });
+                            addAnnouncementDialog(true, data.docs[index].id);
+                          }
                         },
                         title: TextWidget(
                           text: data.docs[index]['name'],
@@ -104,6 +106,12 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
   }
 
   addAnnouncementDialog(bool inEdit, String id) {
+    if (!inEdit) {
+      setState(() {
+        nameController.clear();
+        descController.clear();
+      });
+    }
     showDialog(
       context: context,
       builder: (context) {

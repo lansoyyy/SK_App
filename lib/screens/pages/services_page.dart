@@ -76,7 +76,7 @@ class _ServicesPageState extends State<ServicesPage> {
 
         Navigator.of(context).pop();
         Navigator.of(context).pop();
-        addServicesDialog(context);
+        addServicesDialog(context, false, '', '');
       } on firebase_storage.FirebaseException catch (error) {
         if (kDebugMode) {
           print(error);
@@ -96,7 +96,7 @@ class _ServicesPageState extends State<ServicesPage> {
           ? FloatingActionButton(
               child: const Icon(Icons.add),
               onPressed: () {
-                addServicesDialog(context);
+                addServicesDialog(context, false, '', '');
               })
           : null,
       appBar: AppBar(
@@ -134,53 +134,66 @@ class _ServicesPageState extends State<ServicesPage> {
                     for (int i = 0; i < data.docs.length; i++)
                       Padding(
                         padding: const EdgeInsets.all(5.0),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: Colors.black,
-                            ),
-                          ),
-                          child: Column(
-                            children: [
-                              Container(
-                                height: 100,
-                                width: 175,
-                                decoration: BoxDecoration(
-                                  color: Colors.grey,
-                                  image: DecorationImage(
-                                      image: NetworkImage(
-                                        data.docs[i]['imageUrl'],
-                                      ),
-                                      fit: BoxFit.cover),
-                                ),
+                        child: GestureDetector(
+                          onTap: () {
+                            if (box.read('role') == 'Admin') {
+                              setState(() {
+                                nameController.text = data.docs[i]['name'];
+                                descController.text =
+                                    data.docs[i]['description'];
+                              });
+                              addServicesDialog(context, true, data.docs[i].id,
+                                  data.docs[i]['imageUrl']);
+                            }
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: Colors.black,
                               ),
-                              Container(
-                                height: 50,
-                                width: 175,
-                                decoration: const BoxDecoration(
-                                  color: Colors.white,
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(2.0),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      TextWidget(
-                                        text: data.docs[i]['name'],
-                                        fontSize: 14,
-                                        fontFamily: 'Bold',
-                                      ),
-                                      TextWidget(
-                                        text: data.docs[i]['description'],
-                                        fontSize: 12,
-                                        fontFamily: 'Regular',
-                                      ),
-                                    ],
+                            ),
+                            child: Column(
+                              children: [
+                                Container(
+                                  height: 100,
+                                  width: 175,
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey,
+                                    image: DecorationImage(
+                                        image: NetworkImage(
+                                          data.docs[i]['imageUrl'],
+                                        ),
+                                        fit: BoxFit.cover),
                                   ),
                                 ),
-                              ),
-                            ],
+                                Container(
+                                  height: 50,
+                                  width: 175,
+                                  decoration: const BoxDecoration(
+                                    color: Colors.white,
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(2.0),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        TextWidget(
+                                          text: data.docs[i]['name'],
+                                          fontSize: 14,
+                                          fontFamily: 'Bold',
+                                        ),
+                                        TextWidget(
+                                          text: data.docs[i]['description'],
+                                          fontSize: 12,
+                                          fontFamily: 'Regular',
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -195,7 +208,13 @@ class _ServicesPageState extends State<ServicesPage> {
   final nameController = TextEditingController();
   final descController = TextEditingController();
 
-  addServicesDialog(context) {
+  addServicesDialog(context, bool inEdit, String id, String image) {
+    if (!inEdit) {
+      setState(() {
+        nameController.clear();
+        descController.clear();
+      });
+    }
     showDialog(
       context: context,
       builder: (context) {
@@ -210,29 +229,42 @@ class _ServicesPageState extends State<ServicesPage> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  GestureDetector(
-                    onTap: () {
-                      uploadImage('gallery');
-                    },
-                    child: Container(
-                      height: 150,
-                      width: 300,
-                      decoration: BoxDecoration(
-                        color: Colors.black,
-                        image: idFileName == ''
-                            ? null
-                            : DecorationImage(
+                  inEdit
+                      ? Container(
+                          height: 150,
+                          width: 300,
+                          decoration: BoxDecoration(
+                            color: Colors.black,
+                            image: DecorationImage(
                                 image: NetworkImage(
-                                  idImageURL,
+                                  image,
                                 ),
                                 fit: BoxFit.cover),
-                      ),
-                      child: const Icon(
-                        Icons.add,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
+                          ),
+                        )
+                      : GestureDetector(
+                          onTap: () {
+                            uploadImage('gallery');
+                          },
+                          child: Container(
+                            height: 150,
+                            width: 300,
+                            decoration: BoxDecoration(
+                              color: Colors.black,
+                              image: idFileName == ''
+                                  ? null
+                                  : DecorationImage(
+                                      image: NetworkImage(
+                                        idImageURL,
+                                      ),
+                                      fit: BoxFit.cover),
+                            ),
+                            child: const Icon(
+                              Icons.add,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
                   const SizedBox(
                     height: 20,
                   ),
@@ -260,8 +292,18 @@ class _ServicesPageState extends State<ServicesPage> {
             ),
             TextButton(
               onPressed: () {
-                addServices(
-                    idImageURL, nameController.text, descController.text);
+                if (inEdit) {
+                  FirebaseFirestore.instance
+                      .collection('Services')
+                      .doc(id)
+                      .update({
+                    'name': nameController.text,
+                    'description': descController.text
+                  });
+                } else {
+                  addServices(
+                      idImageURL, nameController.text, descController.text);
+                }
                 Navigator.pop(context);
               },
               child: TextWidget(

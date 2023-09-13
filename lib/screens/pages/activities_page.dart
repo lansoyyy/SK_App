@@ -75,7 +75,7 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
 
         Navigator.of(context).pop();
         Navigator.of(context).pop();
-        addActivityDialog(context);
+        addActivityDialog(context, false, '', '');
       } on firebase_storage.FirebaseException catch (error) {
         if (kDebugMode) {
           print(error);
@@ -97,7 +97,7 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
           ? FloatingActionButton(
               child: const Icon(Icons.add),
               onPressed: () {
-                addActivityDialog(context);
+                addActivityDialog(context, false, '', '');
               })
           : null,
       appBar: AppBar(
@@ -138,6 +138,21 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
                     child: SizedBox(
                       height: 75,
                       child: ListTile(
+                        onTap: () {
+                          if (box.read('role') == 'Admin') {
+                            setState(() {
+                              nameController.text = data.docs[index]['name'];
+                              descController.text =
+                                  data.docs[index]['description'];
+                            });
+
+                            addActivityDialog(
+                                context,
+                                true,
+                                data.docs[index].id,
+                                data.docs[index]['imageUrl']);
+                          }
+                        },
                         title: TextWidget(
                           text: data.docs[index]['name'],
                           fontSize: 18,
@@ -169,7 +184,13 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
   final descController = TextEditingController();
   final dateController = TextEditingController();
 
-  addActivityDialog(context) {
+  addActivityDialog(context, bool inEdit, String id, String image) {
+    if (!inEdit) {
+      setState(() {
+        nameController.clear();
+        descController.clear();
+      });
+    }
     showDialog(
       context: context,
       builder: (context) {
@@ -330,8 +351,19 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
             ),
             TextButton(
               onPressed: () {
-                addActivities(idImageURL, nameController.text,
-                    descController.text, dateController.text);
+                if (inEdit) {
+                  FirebaseFirestore.instance
+                      .collection('Activities')
+                      .doc(id)
+                      .update({
+                    'name': nameController.text,
+                    'description': descController.text
+                  });
+                } else {
+                  addActivities(idImageURL, nameController.text,
+                      descController.text, dateController.text);
+                }
+
                 Navigator.pop(context);
               },
               child: TextWidget(
