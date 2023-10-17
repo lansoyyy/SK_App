@@ -12,7 +12,7 @@ Future signup(name, email, number, address, purok, profile, residency) async {
     'number': number,
     'address': address,
     'purok': purok,
-    'isActive': true,
+    'isActive': false,
     'role': 'User',
     'id': docUser.id,
     'profile': profile,
