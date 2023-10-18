@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:sk_app/screens/home_screen.dart';
+import 'package:sk_app/services/add_helpdesk.dart';
 import 'package:sk_app/widgets/text_widget.dart';
 import 'package:sk_app/widgets/textfield_widget.dart';
+import 'package:sk_app/widgets/toast_widget.dart';
 
 class AddHelpdeskPage extends StatelessWidget {
   final nameController = TextEditingController();
@@ -14,7 +17,13 @@ class AddHelpdeskPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
         floatingActionButton: FloatingActionButton.extended(
-          onPressed: () {},
+          onPressed: () {
+            addHelpdesk(addressController.text, nameController.text,
+                concernController.text, emailController.text);
+            Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) => const HomeScreen()));
+            showToast('Helpdesk added!');
+          },
           label: TextWidget(
             text: 'Submit',
             fontSize: 16,
